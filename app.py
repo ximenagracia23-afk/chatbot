@@ -7,12 +7,10 @@ app = Flask(__name__)
 # Configurar API Key desde Render
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
-# Ruta principal (para que no salga Not Found)
 @app.route("/")
 def home():
     return "Tu chatbot con Gemini está funcionando 🚀"
 
-# Ruta del chatbot
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
@@ -22,9 +20,7 @@ def chat():
         if not mensaje:
             return jsonify({"respuesta": "No enviaste mensaje"})
 
-        # Modelo de Gemini
         model = genai.GenerativeModel("gemini-pro")
-
         response = model.generate_content(mensaje)
 
         return jsonify({"respuesta": response.text})
@@ -32,6 +28,5 @@ def chat():
     except Exception as e:
         return jsonify({"respuesta": str(e)})
 
-# Ejecutar app
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
