@@ -6,7 +6,9 @@ import json
 
 app = Flask(__name__)
 CORS(app)
-@app.route("/chat", methods=["POST"])
+@app.route("/")
+def home():
+    return "Tu chatbot está funcionando 🚀"
 def chat():
     mensaje = request.json["mensaje"]
 
