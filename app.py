@@ -1,12 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import google.generativeai as genai
 import os
+from google import genai
 
 app = Flask(__name__)
 CORS(app)
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+# Crear cliente Gemini
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 @app.route("/")
 def home():
@@ -22,10 +23,11 @@ def chat():
 
         mensaje = data["mensaje"]
 
-        # 🔥 MODELO NUEVO
-        model = genai.GenerativeModel("gemini-1.5-flash")
-
-        response = model.generate_content(mensaje)
+        # 🔥 NUEVA FORMA (FUNCIONA SEGURO)
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=mensaje
+        )
 
         return jsonify({
             "respuesta": response.text
