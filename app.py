@@ -6,7 +6,7 @@ from google import genai
 app = Flask(__name__)
 CORS(app)
 
-# Crear cliente Gemini
+# Cliente de Gemini (API nueva)
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 @app.route("/")
@@ -23,9 +23,9 @@ def chat():
 
         mensaje = data["mensaje"]
 
-        # 🔥 NUEVA FORMA (FUNCIONA SEGURO)
+        # 🔥 MODELO CORRECTO ACTUAL
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.0-flash",
             contents=mensaje
         )
 
