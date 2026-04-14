@@ -1,17 +1,17 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
-from google import genai
+from openai import OpenAI
 
 app = Flask(__name__)
 CORS(app)
 
-# Cliente de Gemini (API nueva)
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+# Cliente OpenAI
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/")
 def home():
-    return "Tu chatbot con Gemini está funcionando 🚀"
+    return "Chatbot funcionando con OpenAI 🚀"
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -23,14 +23,17 @@ def chat():
 
         mensaje = data["mensaje"]
 
-        # 🔥 MODELO CORRECTO ACTUAL
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=mensaje
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": mensaje}
+            ]
         )
 
+        respuesta = response.choices[0].message.content
+
         return jsonify({
-            "respuesta": response.text
+            "respuesta": respuesta
         })
 
     except Exception as e:
