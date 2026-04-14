@@ -1,46 +1,37 @@
-import os
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-import requests
+import google.generativeai as genai
+import os
 
 app = Flask(__name__)
-CORS(app)
 
-API_KEY = os.getenv("GEMINI_API_KEY")
+# Configurar API Key desde Render
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
+# Ruta principal (para que no salga Not Found)
 @app.route("/")
 def home():
     return "Tu chatbot con Gemini está funcionando 🚀"
 
+# Ruta del chatbot
 @app.route("/chat", methods=["POST"])
 def chat():
-    mensaje = request.json["mensaje"]
+    try:
+        data = request.get_json()
+        mensaje = data.get("mensaje")
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={API_KEY}"
+        if not mensaje:
+            return jsonify({"respuesta": "No enviaste mensaje"})
 
-    data = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": mensaje}
-                ]
-            }
-        ]
-    }
+        # Modelo de Gemini
+        model = genai.GenerativeModel("gemini-pro")
 
-    response = requests.post(url, json=data)
+        response = model.generate_content(mensaje)
 
-    respuesta = response.json()
+        return jsonify({"respuesta": response.text})
 
-    if "candidates" in respuesta:
-    texto = respuesta["candidates"][0]["content"]["parts"][0]["text"]
-else:
-    texto = str(respuesta)
+    except Exception as e:
+        return jsonify({"respuesta": str(e)})
 
-    return jsonify({"respuesta": texto})
-
+# Ejecutar app
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
-if __name__ == "__main__":
-    import os
-app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=10000)
