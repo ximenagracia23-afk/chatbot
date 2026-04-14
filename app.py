@@ -32,10 +32,10 @@ def chat():
 
     respuesta = response.json()
 
-    try:
-        texto = respuesta["candidates"][0]["content"]["parts"][0]["text"]
-    except:
-        texto = "Error al obtener respuesta"
+    if "candidates" in respuesta:
+    texto = respuesta["candidates"][0]["content"]["parts"][0]["text"]
+else:
+    texto = str(respuesta)
 
     return jsonify({"respuesta": texto})
 
