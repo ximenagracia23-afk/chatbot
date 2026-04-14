@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Chatbot Pro</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.chat {
+  width: 380px;
+  height: 620px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.header {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: white;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+}
+
+.header small {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.messages {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.bubble {
+  max-width: 70%;
+  padding: 10px;
+  border-radius: 15px;
+  margin: 5px;
+  animation: fadeIn 0.3s ease;
+}
+
+.user {
+  background: #0072ff;
+  color: white;
+}
+
+.bot {
+  background: #f1f1f1;
+}
+
+.input-area {
+  display: flex;
+  padding: 10px;
+  background: #f9f9f9;
+}
+
+input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+button {
+  margin-left: 5px;
+  border: none;
+  background: #0072ff;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #005edb;
+}
+
+.typing {
+  font-size: 12px;
+  color: gray;
+  margin: 5px;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(5px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+</style>
+</head>
+
+<body>
+
+<div class="chat">
+
+  <div class="header">
+    <img src="bot.png">
+    <div>
+      <div>Asistente Inteligente</div>
+      <small>🟢 En línea</small>
+    </div>
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="input-area">
+    <input id="input" placeholder="Escribe tu mensaje..." onkeypress="if(event.key==='Enter') enviar()" />
+    <button onclick="enviar()">Enviar</button>
+  </div>
+
+</div>
+
+<script>
+
+async function enviar() {
+  let input = document.getElementById("input");
+  let mensaje = input.value;
+
+  if (!mensaje) return;
+
+  // 🔊 SONIDO AL ENVIAR (desde interacción real)
+  let sonido = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-message-pop-alert-2354.mp3");
+  sonido.play().catch(() => {});
+
+  agregarMensaje(mensaje, "user");
+  input.value = "";
+
+  mostrarTyping();
+
+  let res = await fetch("http://127.0.0.1:5000/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ mensaje: mensaje })
+  });
+
+  let data = await res.json();
+
+  quitarTyping();
+  agregarMensaje(data.respuesta, "bot");
+
+  // 🔊 SONIDO CUANDO RESPONDE
+  let sonido2 = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-message-pop-alert-2354.mp3");
+  sonido2.play().catch(() => {});
+}
+
+function agregarMensaje(texto, tipo) {
+  let container = document.getElementById("messages");
+
+  let fila = document.createElement("div");
+  fila.style.display = "flex";
+  fila.style.alignItems = "flex-end";
+  fila.style.margin = "5px";
+
+  let img = document.createElement("img");
+  img.style.width = "30px";
+  img.style.height = "30px";
+  img.style.borderRadius = "50%";
+  img.style.margin = "5px";
+
+  let bubble = document.createElement("div");
+  bubble.classList.add("bubble", tipo);
+  bubble.innerText = texto;
+
+  if (tipo === "bot") {
+    img.src = "bot.png";
+    fila.appendChild(img);
+    fila.appendChild(bubble);
+  } else {
+    fila.style.justifyContent = "flex-end";
+    img.src = "https://i.imgur.com/6VBx3io.png";
+    fila.appendChild(bubble);
+    fila.appendChild(img);
+  }
+
+  container.appendChild(fila);
+  container.scrollTop = container.scrollHeight;
+}
+
+function mostrarTyping() {
+  let div = document.createElement("div");
+  div.id = "typing";
+  div.className = "typing";
+  div.innerText = "El bot está escribiendo...";
+  document.getElementById("messages").appendChild(div);
+}
+
+function quitarTyping() {
+  let typing = document.getElementById("typing");
+  if (typing) typing.remove();
+}
+
+// 👋 MENSAJE INICIAL
+window.onload = () => {
+  agregarMensaje("Hola 👋 Soy tu asistente, ¿en qué puedo ayudarte?", "bot");
+};
+
+</script>
+
+</body>
+</html>
