@@ -22,7 +22,9 @@ def chat():
 
         mensaje = data["mensaje"]
 
-        model = genai.GenerativeModel("gemini-pro")
+        # 🔥 MODELO NUEVO
+        model = genai.GenerativeModel("gemini-1.5-flash")
+
         response = model.generate_content(mensaje)
 
         return jsonify({
