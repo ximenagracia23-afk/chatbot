@@ -2,34 +2,45 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
-import json
 
 app = Flask(__name__)
 CORS(app)
+
+API_KEY = os.getenv("GEMINI_API_KEY")
+
 @app.route("/")
 def home():
-    return "Tu chatbot está funcionando 🚀"
+    return "Tu chatbot con Gemini está funcionando 🚀"
+
+@app.route("/chat", methods=["POST"])
 def chat():
     mensaje = request.json["mensaje"]
 
-    response = requests.post(
-        "http://localhost:11434/api/generate",
-        json={
-            "model": "llama3",
-            "prompt": mensaje
-        },
-        stream=True
-    )
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={API_KEY}"
 
-    respuesta_completa = ""
+    data = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": mensaje}
+                ]
+            }
+        ]
+    }
 
-    for linea in response.iter_lines():
-        if linea:
-            data = json.loads(linea)
-            respuesta_completa += data.get("response", "")
+    response = requests.post(url, json=data)
 
-    return jsonify({"respuesta": respuesta_completa})
+    respuesta = response.json()
 
+    try:
+        texto = respuesta["candidates"][0]["content"]["parts"][0]["text"]
+    except:
+        texto = "Error al obtener respuesta"
+
+    return jsonify({"respuesta": texto})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
 if __name__ == "__main__":
     import os
 app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
